@@ -131,17 +131,26 @@ const RiderApp = () => {
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-sm border-t">
           <div className="flex justify-around py-4">
-            <button className="flex flex-col items-center space-y-1">
-              <Car className="w-6 h-6 text-primary" />
-              <span className="text-xs text-primary">Rides</span>
+            <button 
+              onClick={() => setCurrentView('home')}
+              className="flex flex-col items-center space-y-1"
+            >
+              <Car className={`w-6 h-6 ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className={`text-xs ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground'}`}>Rides</span>
             </button>
-            <button className="flex flex-col items-center space-y-1">
-              <Calendar className="w-6 h-6 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Trips</span>
+            <button 
+              onClick={() => setCurrentView('trips')}
+              className="flex flex-col items-center space-y-1"
+            >
+              <Calendar className={`w-6 h-6 ${currentView === 'trips' ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className={`text-xs ${currentView === 'trips' ? 'text-primary' : 'text-muted-foreground'}`}>Trips</span>
             </button>
-            <button className="flex flex-col items-center space-y-1">
-              <User className="w-6 h-6 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">You</span>
+            <button 
+              onClick={() => setCurrentView('profile')}
+              className="flex flex-col items-center space-y-1"
+            >
+              <User className={`w-6 h-6 ${currentView === 'profile' ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className={`text-xs ${currentView === 'profile' ? 'text-primary' : 'text-muted-foreground'}`}>You</span>
             </button>
           </div>
         </div>
@@ -356,11 +365,178 @@ const RiderApp = () => {
     </div>
   );
 
+  const TripsScreen = () => (
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="p-6">
+        {/* Header */}
+        <div className="mb-8 pt-8">
+          <h1 className="text-4xl font-bold mb-4">Your trips</h1>
+          <p className="text-muted-foreground">Review your ride history and receipts</p>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex space-x-4 mb-6">
+          <Button variant="default" size="sm">All trips</Button>
+          <Button variant="outline" size="sm">This month</Button>
+          <Button variant="outline" size="sm">This year</Button>
+        </div>
+
+        {/* Trip History */}
+        <div className="space-y-4">
+          {[
+            { date: 'Today', time: '2:45 PM', from: 'Downtown', to: 'Golden Gate Mall', price: '$15.99', driver: 'Sarah M.' },
+            { date: 'Yesterday', time: '9:30 AM', from: 'Home', to: 'Tech Park Complex', price: '$23.99', driver: 'Mike R.' },
+            { date: 'Jul 2', time: '6:15 PM', from: 'University Campus', to: 'Central Business District', price: '$18.50', driver: 'Lisa K.' },
+            { date: 'Jul 1', time: '11:20 AM', from: 'Memorial Hospital', to: 'Ocean View Beach', price: '$28.75', driver: 'John D.' },
+            { date: 'Jun 30', time: '3:00 PM', from: 'Sunny Valley Airport', to: 'Home', price: '$45.25', driver: 'Emma S.' }
+          ].map((trip, index) => (
+            <div key={index} className="bg-card rounded-xl p-4 border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                    <Car className="w-6 h-6 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">{trip.from}</span>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      <span className="font-medium">{trip.to}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-1">
+                      <span>{trip.date}</span>
+                      <span>•</span>
+                      <span>{trip.time}</span>
+                      <span>•</span>
+                      <span>Driver: {trip.driver}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-lg">{trip.price}</p>
+                  <Button variant="ghost" size="sm" className="text-xs">
+                    Receipt
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const ProfileScreen = () => (
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="p-6">
+        {/* Header */}
+        <div className="mb-8 pt-8">
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center">
+              <User className="w-10 h-10 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">Alex Johnson</h1>
+              <p className="text-muted-foreground">Member since 2022</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="bg-card rounded-xl p-4 border">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-primary">124</p>
+              <p className="text-sm text-muted-foreground">Total trips</p>
+            </div>
+          </div>
+          <div className="bg-card rounded-xl p-4 border">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-success">4.9</p>
+              <p className="text-sm text-muted-foreground">Rating</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Menu Options */}
+        <div className="space-y-4">
+          <div className="bg-card rounded-xl p-4 border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Payment methods</p>
+                  <p className="text-sm text-muted-foreground">Manage cards and payment options</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </div>
+          </div>
+
+          <div className="bg-card rounded-xl p-4 border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Saved places</p>
+                  <p className="text-sm text-muted-foreground">Home, work, and favorite locations</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </div>
+          </div>
+
+          <div className="bg-card rounded-xl p-4 border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <User className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Account settings</p>
+                  <p className="text-sm text-muted-foreground">Profile, notifications, and privacy</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </div>
+          </div>
+
+          <div className="bg-card rounded-xl p-4 border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <Navigation className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Help & support</p>
+                  <p className="text-sm text-muted-foreground">Get help with trips and account</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </div>
+          </div>
+        </div>
+
+        {/* Sign Out */}
+        <div className="mt-8">
+          <Button variant="outline" className="w-full">
+            Sign out
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="relative">
       {currentView === 'home' && <HomeScreen />}
       {currentView === 'search' && <SearchScreen />}
       {currentView === 'booking' && <BookingScreen />}
+      {currentView === 'trips' && <TripsScreen />}
+      {currentView === 'profile' && <ProfileScreen />}
     </div>
   );
 };
