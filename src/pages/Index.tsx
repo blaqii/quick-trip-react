@@ -1,7 +1,7 @@
-import DriverApp from '@/components/DriverApp';
+import AppModeSwitch from '@/components/AppModeSwitch';
 
 const Index = () => {
-  return <DriverApp />;
+  return <AppModeSwitch />;
 };
 
 export default Index;
