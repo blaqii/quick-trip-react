@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const DriverApp = () => {
+const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') => void }) => {
   const [currentView, setCurrentView] = useState('home');
   const [isOnline, setIsOnline] = useState(false);
   const [incomingRequest, setIncomingRequest] = useState(null);
@@ -486,7 +486,7 @@ const DriverApp = () => {
         </div>
 
         {/* Menu Items */}
-        <div className="bg-gradient-card rounded-xl p-4 shadow-card">
+        <div className="bg-gradient-card rounded-xl p-4 shadow-card mb-6">
           <div className="space-y-1">
             {[
               { icon: Car, label: 'Vehicle Information' },
@@ -505,6 +505,32 @@ const DriverApp = () => {
             ))}
           </div>
         </div>
+
+        {/* App Mode Switch */}
+        <div className="bg-card/90 backdrop-blur-sm border rounded-xl p-1 flex w-full mb-4">
+          <Button
+            variant="default"
+            size="sm"
+            className="flex items-center space-x-2 flex-1"
+          >
+            <Car className="w-4 h-4" />
+            <span>Driver</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onModeSwitch('rider')}
+            className="flex items-center space-x-2 flex-1"
+          >
+            <User className="w-4 h-4" />
+            <span>Rider</span>
+          </Button>
+        </div>
+
+        {/* Sign Out */}
+        <Button variant="outline" className="w-full">
+          Sign out
+        </Button>
       </div>
     </div>
   );
