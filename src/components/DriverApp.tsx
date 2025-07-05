@@ -12,51 +12,99 @@ import {
   WifiOff, 
   ChevronLeft, 
   ChevronRight, 
-  Plus 
+  Plus,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRideRequests, useUserTrips } from '@/hooks/useFirestore';
+import { useToast } from '@/hooks/use-toast';
 
 const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') => void }) => {
+  const { currentUser, userProfile, logout } = useAuth();
+  const { requests, acceptRideRequest, updateRideStatus } = useRideRequests();
+  const { trips: myTrips, loading: tripsLoading } = useUserTrips(currentUser?.uid || '', 'driver');
+  const { toast } = useToast();
+  
   const [currentView, setCurrentView] = useState('home');
   const [isOnline, setIsOnline] = useState(false);
-  const [incomingRequest, setIncomingRequest] = useState(null);
-  const [currentTrip, setCurrentTrip] = useState(null);
-  const [earnings, setEarnings] = useState(127.50);
-  const [trips, setTrips] = useState(8);
-
-  // Simulate incoming ride request
+  const [incomingRequest, setIncomingRequest] = useState<any>(null);
+  const [currentTrip, setCurrentTrip] = useState<any>(null);
+  const [earnings, setEarnings] = useState(0);
+  
+  // Calculate today's earnings from completed trips
   useEffect(() => {
-    if (isOnline && !incomingRequest && !currentTrip) {
-      const timer = setTimeout(() => {
-        setIncomingRequest({
-          passenger: 'Sarah M.',
-          pickup: '123 Main St',
-          destination: 'Airport Terminal 2',
-          distance: '8.2 km',
-          fare: '$23.50',
-          rating: 4.9,
-          eta: '3 min'
-        });
-      }, 8000);
-      return () => clearTimeout(timer);
+    if (myTrips.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const todaysEarnings = myTrips
+        .filter(trip => trip.completedAt.toDate() >= today)
+        .reduce((total, trip) => total + trip.fare, 0);
+      
+      setEarnings(todaysEarnings);
     }
-  }, [isOnline, incomingRequest, currentTrip]);
+  }, [myTrips]);
 
-  const acceptRide = () => {
-    setCurrentTrip(incomingRequest);
-    setIncomingRequest(null);
-    setCurrentView('trip');
+  // Listen for incoming requests when online
+  useEffect(() => {
+    if (isOnline && requests.length > 0 && !incomingRequest && !currentTrip) {
+      const pendingRequest = requests.find(req => req.status === 'pending');
+      if (pendingRequest) {
+        setIncomingRequest(pendingRequest);
+      }
+    }
+  }, [isOnline, requests, incomingRequest, currentTrip]);
+
+  const acceptRide = async () => {
+    try {
+      if (incomingRequest && incomingRequest.id) {
+        await acceptRideRequest(
+          incomingRequest.id, 
+          currentUser!.uid, 
+          userProfile?.name || currentUser!.email!
+        );
+        setCurrentTrip(incomingRequest);
+        setIncomingRequest(null);
+        setCurrentView('trip');
+        
+        toast({
+          title: "Ride Accepted!",
+          description: "Navigate to pickup location",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const declineRide = () => {
     setIncomingRequest(null);
   };
 
-  const completeTrip = () => {
-    setEarnings(prev => prev + parseFloat(currentTrip.fare.replace('$', '')));
-    setTrips(prev => prev + 1);
-    setCurrentTrip(null);
-    setCurrentView('home');
+  const completeTrip = async () => {
+    try {
+      if (currentTrip && currentTrip.id) {
+        await updateRideStatus(currentTrip.id, 'completed');
+        setCurrentTrip(null);
+        setCurrentView('home');
+        
+        toast({
+          title: "Trip Completed!",
+          description: `Earned $${currentTrip.fare}`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const HomeScreen = () => (
@@ -65,13 +113,21 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
       <div className="bg-gradient-card p-6 shadow-card">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Good evening, Mike</h1>
+            <h1 className="text-2xl font-bold">Good evening, {userProfile?.name || 'Driver'}</h1>
             <p className="text-muted-foreground">Ready to earn some money?</p>
           </div>
           <div className="text-right">
             <p className="text-sm text-muted-foreground">Today's earnings</p>
             <p className="text-2xl font-bold text-primary">${earnings.toFixed(2)}</p>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={logout}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="w-5 h-5" />
+          </Button>
         </div>
 
         {/* Online Status Toggle */}
@@ -104,7 +160,11 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
                 <Car className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{trips}</p>
+                <p className="text-2xl font-bold">{myTrips.filter(trip => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  return trip.completedAt.toDate() >= today;
+                }).length}</p>
                 <p className="text-sm text-muted-foreground">Trips today</p>
               </div>
             </div>
@@ -216,33 +276,33 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
             </div>
             
             <div className="space-y-4 mb-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-primary-foreground" />
-                </div>
-                <div>
-                  <p className="font-semibold text-lg">{incomingRequest.passenger}</p>
-                  <p className="text-muted-foreground">★ {incomingRequest.rating} • {incomingRequest.eta} away</p>
-                </div>
-                <div className="ml-auto text-right">
-                  <p className="text-2xl font-bold text-success">{incomingRequest.fare}</p>
-                  <p className="text-sm text-muted-foreground">{incomingRequest.distance}</p>
-                </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center">
+                <User className="w-6 h-6 text-primary-foreground" />
               </div>
+              <div>
+                <p className="font-semibold text-lg">{incomingRequest?.riderName}</p>
+                <p className="text-muted-foreground">★ 4.9 • 3 min away</p>
+              </div>
+              <div className="ml-auto text-right">
+                <p className="text-2xl font-bold text-success">${incomingRequest?.fare}</p>
+                <p className="text-sm text-muted-foreground">8.2 km</p>
+              </div>
+            </div>
               
               <div className="bg-secondary rounded-lg p-4 space-y-3">
                 <div className="flex items-center space-x-3">
                   <div className="w-3 h-3 bg-primary rounded-full"></div>
                   <div>
                     <p className="text-sm text-muted-foreground">Pickup</p>
-                    <p className="font-medium">{incomingRequest.pickup}</p>
+                    <p className="font-medium">{incomingRequest?.pickup}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-3 h-3 bg-success rounded-full"></div>
                   <div>
                     <p className="text-sm text-muted-foreground">Destination</p>
-                    <p className="font-medium">{incomingRequest.destination}</p>
+                    <p className="font-medium">{incomingRequest?.destination}</p>
                   </div>
                 </div>
               </div>
@@ -297,8 +357,8 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
               <User className="w-6 h-6 text-primary-foreground" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-lg">{currentTrip?.passenger}</p>
-              <p className="text-muted-foreground">★ {currentTrip?.rating} • {currentTrip?.fare}</p>
+              <p className="font-semibold text-lg">{currentTrip?.riderName}</p>
+              <p className="text-muted-foreground">★ 4.9 • ${currentTrip?.fare}</p>
             </div>
             <Button variant="outline" size="sm">
               <Search className="w-4 h-4" />
@@ -414,7 +474,11 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
               <p className="text-sm text-muted-foreground">Total Earnings</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-success">{trips}</p>
+              <p className="text-3xl font-bold text-success">{myTrips.filter(trip => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return trip.completedAt.toDate() >= today;
+              }).length}</p>
               <p className="text-sm text-muted-foreground">Completed Trips</p>
             </div>
           </div>

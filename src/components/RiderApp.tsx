@@ -12,11 +12,20 @@ import {
   WifiOff, 
   ChevronLeft, 
   ChevronRight, 
-  Plus 
+  Plus,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRideRequests, useUserTrips } from '@/hooks/useFirestore';
+import { useToast } from '@/hooks/use-toast';
 
 const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') => void }) => {
+  const { currentUser, userProfile, logout } = useAuth();
+  const { createRideRequest } = useRideRequests();
+  const { trips, loading: tripsLoading } = useUserTrips(currentUser?.uid || '', 'rider');
+  const { toast } = useToast();
+  
   const [currentView, setCurrentView] = useState('home');
   const [selectedDestination, setSelectedDestination] = useState('');
   const [isOnline, setIsOnline] = useState(false);
@@ -46,7 +55,17 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
       <div className="relative z-10 p-6">
         {/* Header */}
         <div className="mb-8 pt-8">
-          <h1 className="text-4xl font-bold mb-4">Oh hello, Alex</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-4xl font-bold">Oh hello, {userProfile?.name || 'Rider'}</h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={logout}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
           <div className="flex items-center space-x-2 bg-card/70 backdrop-blur-sm rounded-xl p-4 border">
             <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
             <p className="text-sm text-muted-foreground">
@@ -354,9 +373,29 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
         <Button 
           className="w-full mt-4"
           size="driver"
-          onClick={() => {
-            alert('Ride booked! Your driver will arrive in 11 minutes.');
-            setCurrentView('home');
+          onClick={async () => {
+            try {
+              await createRideRequest({
+                riderId: currentUser!.uid,
+                riderName: userProfile?.name || currentUser!.email!,
+                pickup: 'Downtown', // In a real app, this would be user's current location
+                destination: selectedDestination,
+                fare: 23.99
+              });
+              
+              toast({
+                title: "Ride Requested!",
+                description: "Looking for available drivers...",
+              });
+              
+              setCurrentView('home');
+            } catch (error: any) {
+              toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+              });
+            }
           }}
         >
           Select Standard
@@ -383,43 +422,37 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
 
         {/* Trip History */}
         <div className="space-y-4">
-          {[
-            { date: 'Today', time: '2:45 PM', from: 'Downtown', to: 'Golden Gate Mall', price: '$15.99', driver: 'Sarah M.' },
-            { date: 'Yesterday', time: '9:30 AM', from: 'Home', to: 'Tech Park Complex', price: '$23.99', driver: 'Mike R.' },
-            { date: 'Jul 2', time: '6:15 PM', from: 'University Campus', to: 'Central Business District', price: '$18.50', driver: 'Lisa K.' },
-            { date: 'Jul 1', time: '11:20 AM', from: 'Memorial Hospital', to: 'Ocean View Beach', price: '$28.75', driver: 'John D.' },
-            { date: 'Jun 30', time: '3:00 PM', from: 'Sunny Valley Airport', to: 'Home', price: '$45.25', driver: 'Emma S.' }
-          ].map((trip, index) => (
-            <div key={index} className="bg-card rounded-xl p-4 border">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-                    <Car className="w-6 h-6 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium">{trip.from}</span>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{trip.to}</span>
+          {tripsLoading ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Loading trips...</p>
+            </div>
+          ) : trips.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No trips yet</p>
+            </div>
+          ) : (
+            trips.map((trip) => (
+              <div key={trip.id} className="bg-card rounded-xl p-4 border hover:bg-secondary/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                      <Car className="w-6 h-6 text-primary-foreground" />
                     </div>
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-1">
-                      <span>{trip.date}</span>
-                      <span>•</span>
-                      <span>{trip.time}</span>
-                      <span>•</span>
-                      <span>Driver: {trip.driver}</span>
+                    <div>
+                      <p className="font-medium">{trip.pickup} → {trip.destination}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {trip.completedAt.toDate().toLocaleDateString()} • Driver: {trip.driverName}
+                      </p>
                     </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-lg">{trip.price}</p>
-                  <Button variant="ghost" size="sm" className="text-xs">
-                    Receipt
-                  </Button>
+                  <div className="text-right">
+                    <p className="font-semibold">${trip.fare.toFixed(2)}</p>
+                    <p className="text-xs text-success">Completed</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>
