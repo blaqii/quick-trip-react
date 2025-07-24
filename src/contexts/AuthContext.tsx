@@ -17,6 +17,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, userType: 'driver' | 'rider') => Promise<void>;
   loginWithGoogle: (userType: 'driver' | 'rider') => Promise<void>;
+  updateUserType: (userType: 'driver' | 'rider') => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -78,6 +79,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await createUserProfile(user, userType);
   };
 
+  const updateUserType = async (userType: 'driver' | 'rider') => {
+    if (!currentUser) return;
+    
+    const userRef = doc(db, 'users', currentUser.uid);
+    await setDoc(userRef, { userType }, { merge: true });
+    
+    // Update local state
+    setUserProfile(prev => prev ? { ...prev, userType } : null);
+  };
+
   const logout = async () => {
     await signOut(auth);
     setUserProfile(null);
@@ -111,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signup,
     login,
     loginWithGoogle,
+    updateUserType,
     logout
   };
 

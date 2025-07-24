@@ -21,6 +21,7 @@ import { useRideRequests, useUserTrips } from '@/hooks/useFirestore';
 import { useToast } from '@/hooks/use-toast';
 import GoogleMap from '@/components/GoogleMap';
 import LocationSearch from '@/components/LocationSearch';
+import ProfilePages from '@/components/ProfilePages';
 
 const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') => void }) => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -34,6 +35,7 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
   const [isOnline, setIsOnline] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [profilePage, setProfilePage] = useState<string | null>(null);
 
   const HomeScreen = () => (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -408,8 +410,8 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
               <User className="w-10 h-10 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Alex Johnson</h1>
-              <p className="text-muted-foreground">Member since 2022</p>
+              <h1 className="text-3xl font-bold">{userProfile?.name || currentUser?.email || 'Rider'}</h1>
+              <p className="text-muted-foreground">Member since {userProfile?.createdAt ? (userProfile.createdAt as any).toDate ? (userProfile.createdAt as any).toDate().getFullYear() : new Date(userProfile.createdAt).getFullYear() : new Date().getFullYear()}</p>
             </div>
           </div>
         </div>
@@ -432,65 +434,77 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
 
         {/* Menu Options */}
         <div className="space-y-4">
-          <div className="bg-card rounded-xl p-4 border">
+          <button 
+            onClick={() => setProfilePage('payment')}
+            className="w-full bg-card rounded-xl p-4 border hover:bg-secondary/50 transition-colors"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-primary" />
                 </div>
-                <div>
+                <div className="text-left">
                   <p className="font-medium">Payment methods</p>
                   <p className="text-sm text-muted-foreground">Manage cards and payment options</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
-          </div>
+          </button>
 
-          <div className="bg-card rounded-xl p-4 border">
+          <button 
+            onClick={() => setProfilePage('places')}
+            className="w-full bg-card rounded-xl p-4 border hover:bg-secondary/50 transition-colors"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-primary" />
                 </div>
-                <div>
+                <div className="text-left">
                   <p className="font-medium">Saved places</p>
                   <p className="text-sm text-muted-foreground">Home, work, and favorite locations</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
-          </div>
+          </button>
 
-          <div className="bg-card rounded-xl p-4 border">
+          <button 
+            onClick={() => setProfilePage('account')}
+            className="w-full bg-card rounded-xl p-4 border hover:bg-secondary/50 transition-colors"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 text-primary" />
                 </div>
-                <div>
+                <div className="text-left">
                   <p className="font-medium">Account settings</p>
                   <p className="text-sm text-muted-foreground">Profile, notifications, and privacy</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
-          </div>
+          </button>
 
-          <div className="bg-card rounded-xl p-4 border">
+          <button 
+            onClick={() => setProfilePage('help')}
+            className="w-full bg-card rounded-xl p-4 border hover:bg-secondary/50 transition-colors"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                   <Navigation className="w-5 h-5 text-primary" />
                 </div>
-                <div>
+                <div className="text-left">
                   <p className="font-medium">Help & support</p>
                   <p className="text-sm text-muted-foreground">Get help with trips and account</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
-          </div>
+          </button>
         </div>
 
         {/* App Mode Switch */}
@@ -518,13 +532,23 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
 
         {/* Sign Out */}
         <div className="mt-4">
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={logout}>
             Sign out
           </Button>
         </div>
       </div>
     </div>
   );
+
+  // Show profile pages if any is selected
+  if (profilePage) {
+    return (
+      <ProfilePages 
+        currentPage={profilePage} 
+        onBack={() => setProfilePage(null)} 
+      />
+    );
+  }
 
   return (
     <div className="relative">
