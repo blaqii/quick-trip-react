@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRideRequests, useUserTrips } from '@/hooks/useFirestore';
 import { useToast } from '@/hooks/use-toast';
+import GoogleMap from '@/components/GoogleMap';
 
 const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') => void }) => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -191,23 +192,11 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
               Center
             </Button>
           </div>
-          <div className="h-64 bg-secondary rounded-lg relative overflow-hidden">
-            {/* Simulated map */}
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute top-16 left-0 right-0 h-px bg-border"></div>
-              <div className="absolute top-32 left-0 right-0 h-px bg-border"></div>
-              <div className="absolute top-48 left-0 right-0 h-px bg-border"></div>
-              <div className="absolute left-16 top-0 bottom-0 w-px bg-border"></div>
-              <div className="absolute left-32 top-0 bottom-0 w-px bg-border"></div>
-              <div className="absolute left-48 top-0 bottom-0 w-px bg-border"></div>
-            </div>
-            
-            {/* Current location */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-4 h-4 bg-primary rounded-full shadow-glow"></div>
-              <div className="w-8 h-8 border-2 border-primary rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-ping opacity-75"></div>
-            </div>
-          </div>
+          <GoogleMap 
+            height="256px" 
+            showUserLocation={true}
+            className="rounded-lg"
+          />
         </div>
 
         {/* Status Message */}
