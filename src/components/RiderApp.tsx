@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRideRequests, useUserTrips } from '@/hooks/useFirestore';
 import { useToast } from '@/hooks/use-toast';
 import GoogleMap from '@/components/GoogleMap';
+import LocationSearch from '@/components/LocationSearch';
 
 const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') => void }) => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -29,20 +30,10 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
   
   const [currentView, setCurrentView] = useState('home');
   const [selectedDestination, setSelectedDestination] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [isOnline, setIsOnline] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
-
-  const destinations = [
-    { name: 'Central Business District', address: '120 Main St, Downtown', type: 'business' },
-    { name: 'Golden Gate Mall', address: '456 Shopping Ave, Westside', type: 'shopping' },
-    { name: 'Sunny Valley Airport', address: '789 Airport Blvd, Terminal 1', type: 'airport' },
-    { name: 'Ocean View Beach', address: '321 Coastal Rd, Beachfront', type: 'recreation' },
-    { name: 'Tech Park Complex', address: '555 Innovation Dr, Tech District', type: 'business' },
-    { name: 'University Campus', address: '100 College Ave, Education District', type: 'education' },
-    { name: 'Memorial Hospital', address: '200 Health St, Medical Center', type: 'medical' },
-    { name: 'Sunrise Train Station', address: '150 Railway Ave, Transit Hub', type: 'transport' }
-  ];
 
   const HomeScreen = () => (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -200,50 +191,19 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
             <div className="w-3 h-3 bg-warning rounded-full mr-4"></div>
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Destination</p>
-              <input
-                type="text"
-                placeholder="Where to?"
-                className="bg-transparent text-foreground placeholder-muted-foreground focus:outline-none w-full"
+              <LocationSearch
                 value={selectedDestination}
-                onChange={(e) => setSelectedDestination(e.target.value)}
+                onChange={setSelectedDestination}
+                onSelect={(location) => {
+                  setSelectedLocation(location);
+                  setCurrentView('booking');
+                }}
+                placeholder="Where to?"
               />
             </div>
           </div>
         </div>
 
-        {/* Destination Suggestions */}
-        <div className="space-y-3">
-          {destinations
-            .filter(dest => 
-              selectedDestination === '' || 
-              dest.name.toLowerCase().includes(selectedDestination.toLowerCase()) ||
-              dest.address.toLowerCase().includes(selectedDestination.toLowerCase())
-            )
-            .map((dest, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setSelectedDestination(dest.name);
-                  setCurrentView('booking');
-                }}
-                className="w-full flex items-center space-x-4 p-4 hover:bg-secondary rounded-xl transition-colors"
-              >
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  {dest.type === 'business' && <MapPin className="w-5 h-5 text-primary-foreground" />}
-                  {dest.type === 'shopping' && <MapPin className="w-5 h-5 text-primary-foreground" />}
-                  {dest.type === 'airport' && <Navigation className="w-5 h-5 text-primary-foreground" />}
-                  {dest.type === 'recreation' && <MapPin className="w-5 h-5 text-primary-foreground" />}
-                  {dest.type === 'education' && <MapPin className="w-5 h-5 text-primary-foreground" />}
-                  {dest.type === 'medical' && <MapPin className="w-5 h-5 text-primary-foreground" />}
-                  {dest.type === 'transport' && <Car className="w-5 h-5 text-primary-foreground" />}
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium">{dest.name}</p>
-                  <p className="text-sm text-muted-foreground">{dest.address}</p>
-                </div>
-              </button>
-            ))}
-        </div>
       </div>
     </div>
   );
