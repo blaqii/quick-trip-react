@@ -158,16 +158,21 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
     }
   };
 
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
     
+    // Clear previous timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
     // Debounce the search
-    const timeoutId = setTimeout(() => {
+    debounceTimeoutRef.current = setTimeout(() => {
       searchPlaces(newValue);
     }, 300);
-
-    return () => clearTimeout(timeoutId);
   };
 
   const handleSelect = (suggestion: LocationSuggestion) => {

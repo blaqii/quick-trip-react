@@ -31,7 +31,9 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
   
   const [currentView, setCurrentView] = useState('home');
   const [selectedDestination, setSelectedDestination] = useState('');
+  const [selectedStartLocation, setSelectedStartLocation] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [startLocation, setStartLocation] = useState<any>(null);
   const [isOnline, setIsOnline] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -181,9 +183,16 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
         <div className="bg-card rounded-2xl p-4 mb-6 border">
           <div className="flex items-center mb-4">
             <div className="w-3 h-3 bg-primary rounded-full mr-4"></div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm text-muted-foreground">Start</p>
-              <p className="font-medium">Downtown</p>
+              <LocationSearch
+                value={selectedStartLocation}
+                onChange={setSelectedStartLocation}
+                onSelect={(location) => {
+                  setStartLocation(location);
+                }}
+                placeholder="Current location"
+              />
             </div>
             <Button variant="ghost" size="icon" className="ml-auto">
               <Plus className="w-4 h-4" />
