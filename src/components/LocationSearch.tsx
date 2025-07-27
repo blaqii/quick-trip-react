@@ -32,12 +32,17 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
   useEffect(() => {
     const initializeServices = async () => {
       try {
+        console.log('Initializing Google Maps...');
         await initializeGoogleMaps();
+        console.log('Google Maps initialized successfully');
+        
         autocompleteService.current = new google.maps.places.AutocompleteService();
+        console.log('AutocompleteService created');
         
         // Create a dummy div for PlacesService (required by Google Maps API)
         const dummyDiv = document.createElement('div');
         placesService.current = new google.maps.places.PlacesService(dummyDiv);
+        console.log('PlacesService created');
       } catch (error) {
         console.error('Failed to initialize Google Maps services:', error);
       }
@@ -86,7 +91,11 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
   };
 
   const searchPlaces = async (query: string) => {
+    console.log('searchPlaces called with query:', query);
+    console.log('autocompleteService.current:', autocompleteService.current);
+    
     if (!query.trim() || !autocompleteService.current) {
+      console.log('Search cancelled - empty query or no service');
       setSuggestions([]);
       return;
     }
@@ -190,6 +199,8 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
         className="bg-transparent text-foreground placeholder-muted-foreground focus:outline-none w-full"
         value={value}
         onChange={handleInputChange}
+        onFocus={() => console.log('LocationSearch input focused')}
+        onBlur={() => console.log('LocationSearch input blurred')}
       />
       
       {/* Suggestions Dropdown */}

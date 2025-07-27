@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   Search, 
   Calendar, 
@@ -34,6 +34,24 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
   const [selectedStartLocation, setSelectedStartLocation] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [startLocation, setStartLocation] = useState<any>(null);
+
+  // Memoized handlers to prevent re-renders
+  const handleStartLocationChange = useCallback((value: string) => {
+    setSelectedStartLocation(value);
+  }, []);
+
+  const handleStartLocationSelect = useCallback((location: any) => {
+    setStartLocation(location);
+  }, []);
+
+  const handleDestinationChange = useCallback((value: string) => {
+    setSelectedDestination(value);
+  }, []);
+
+  const handleDestinationSelect = useCallback((location: any) => {
+    setSelectedLocation(location);
+    setCurrentView('booking');
+  }, []);
   const [isOnline, setIsOnline] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -186,11 +204,10 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Start</p>
               <LocationSearch
+                key="start-location-search"
                 value={selectedStartLocation}
-                onChange={setSelectedStartLocation}
-                onSelect={(location) => {
-                  setStartLocation(location);
-                }}
+                onChange={handleStartLocationChange}
+                onSelect={handleStartLocationSelect}
                 placeholder="Current location"
               />
             </div>
@@ -203,12 +220,10 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Destination</p>
               <LocationSearch
+                key="destination-location-search"
                 value={selectedDestination}
-                onChange={setSelectedDestination}
-                onSelect={(location) => {
-                  setSelectedLocation(location);
-                  setCurrentView('booking');
-                }}
+                onChange={handleDestinationChange}
+                onSelect={handleDestinationSelect}
                 placeholder="Where to?"
               />
             </div>
