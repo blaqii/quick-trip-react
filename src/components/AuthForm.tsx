@@ -64,6 +64,34 @@ const AuthForm: React.FC<AuthFormProps> = ({ userType }) => {
     }
   };
 
+  const handleDevLogin = async () => {
+    setLoading(true);
+    try {
+      const devEmail = `dev-${userType}@test.com`;
+      const devPassword = "dev123456";
+      
+      try {
+        await login(devEmail, devPassword);
+      } catch (loginError) {
+        // If login fails, create the dev account
+        await signup(devEmail, devPassword, userType);
+      }
+      
+      toast({
+        title: "Developer Login",
+        description: `Logged in as ${userType} developer account.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const Icon = userType === 'driver' ? Car : User;
 
   return (
@@ -161,12 +189,22 @@ const AuthForm: React.FC<AuthFormProps> = ({ userType }) => {
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="w-full mb-2"
             onClick={handleGoogleLogin}
             disabled={loading}
           >
             <Mail className="mr-2 h-4 w-4" />
             Google
+          </Button>
+
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full"
+            onClick={handleDevLogin}
+            disabled={loading}
+          >
+            🛠️ Developer Login
           </Button>
         </CardContent>
       </Card>
