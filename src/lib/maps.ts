@@ -1,6 +1,6 @@
 import { Loader } from '@googlemaps/js-api-loader';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyBO-AH7qZ4bNtZhMQS2NwXxEXgw20xwx8k';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyCGCnBRrmkoyuXQUiXoqTtzSwblknv6LuM';
 
 export const loader = new Loader({
   apiKey: GOOGLE_MAPS_API_KEY,
