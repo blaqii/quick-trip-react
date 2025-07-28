@@ -25,6 +25,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
 }) => {
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesService = useRef<google.maps.places.PlacesService | null>(null);
@@ -154,7 +155,10 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
             });
           });
 
-          Promise.all(detailedSuggestions).then(setSuggestions);
+          Promise.all(detailedSuggestions).then((results) => {
+            setSuggestions(results);
+            setShowSuggestions(true);
+          });
         } else {
           setSuggestions([]);
         }
@@ -172,6 +176,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
+    setShowSuggestions(true);
     
     // Clear previous timeout
     if (debounceTimeoutRef.current) {
@@ -188,6 +193,21 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
     onChange(suggestion.name);
     onSelect(suggestion);
     setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const handleFocus = () => {
+    setShowSuggestions(true);
+    if (suggestions.length > 0) {
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleBlur = () => {
+    // Delay hiding suggestions to allow for clicks
+    setTimeout(() => {
+      setShowSuggestions(false);
+    }, 200);
   };
 
   return (
@@ -199,12 +219,13 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
         className="bg-transparent text-foreground placeholder-muted-foreground focus:outline-none w-full"
         value={value}
         onChange={handleInputChange}
-        onFocus={() => console.log('LocationSearch input focused')}
-        onBlur={() => console.log('LocationSearch input blurred')}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        autoComplete="off"
       />
       
       {/* Suggestions Dropdown */}
-      {(suggestions.length > 0 || isLoading) && (
+      {showSuggestions && (suggestions.length > 0 || isLoading) && (
         <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-background border rounded-xl shadow-lg max-h-80 overflow-y-auto">
           {isLoading ? (
             <div className="p-4 text-center text-muted-foreground">

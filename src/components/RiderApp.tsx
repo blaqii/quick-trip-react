@@ -198,13 +198,12 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
         </div>
 
         {/* Route Input */}
-        <div className="bg-card rounded-2xl p-4 mb-6 border">
+        <div className="bg-card rounded-2xl p-4 mb-6 border relative">
           <div className="flex items-center mb-4">
             <div className="w-3 h-3 bg-primary rounded-full mr-4"></div>
-            <div className="flex-1">
+            <div className="flex-1 relative">
               <p className="text-sm text-muted-foreground">Start</p>
               <LocationSearch
-                key="start-location-search"
                 value={selectedStartLocation}
                 onChange={handleStartLocationChange}
                 onSelect={handleStartLocationSelect}
@@ -217,10 +216,9 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
           </div>
           <div className="flex items-center">
             <div className="w-3 h-3 bg-warning rounded-full mr-4"></div>
-            <div className="flex-1">
+            <div className="flex-1 relative">
               <p className="text-sm text-muted-foreground">Destination</p>
               <LocationSearch
-                key="destination-location-search"
                 value={selectedDestination}
                 onChange={handleDestinationChange}
                 onSelect={handleDestinationSelect}
