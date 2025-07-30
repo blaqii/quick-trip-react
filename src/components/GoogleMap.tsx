@@ -53,15 +53,62 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
           styles: [
             {
               featureType: 'all',
+              elementType: 'geometry',
+              stylers: [{ color: '#ffffff' }],
+            },
+            {
+              featureType: 'all',
               elementType: 'labels.text.fill',
-              stylers: [{ color: '#6c757d' }],
+              stylers: [{ color: '#71717a' }],
+            },
+            {
+              featureType: 'all',
+              elementType: 'labels.text.stroke',
+              stylers: [{ color: '#ffffff' }, { weight: 2 }],
             },
             {
               featureType: 'road',
               elementType: 'geometry',
-              stylers: [{ color: '#f8f9fa' }],
+              stylers: [{ color: '#f8fafc' }],
+            },
+            {
+              featureType: 'road',
+              elementType: 'geometry.stroke',
+              stylers: [{ color: '#e2e8f0' }],
+            },
+            {
+              featureType: 'road.highway',
+              elementType: 'geometry',
+              stylers: [{ color: '#f1f5f9' }],
+            },
+            {
+              featureType: 'water',
+              elementType: 'geometry',
+              stylers: [{ color: '#e0f2fe' }],
+            },
+            {
+              featureType: 'poi',
+              elementType: 'geometry',
+              stylers: [{ color: '#f1f5f9' }],
+            },
+            {
+              featureType: 'poi.park',
+              elementType: 'geometry',
+              stylers: [{ color: '#ecfdf5' }],
+            },
+            {
+              featureType: 'transit',
+              elementType: 'geometry',
+              stylers: [{ color: '#f1f5f9' }],
             },
           ],
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+          zoomControl: true,
+          zoomControlOptions: {
+            position: google.ControlPosition.RIGHT_BOTTOM,
+          },
         });
 
         setMap(mapInstance);
@@ -101,7 +148,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         icon: {
           url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="8" fill="#3B82F6"/>
+              <circle cx="12" cy="12" r="8" fill="#3b82f6"/>
               <circle cx="12" cy="12" r="3" fill="white"/>
             </svg>
           `),
@@ -151,8 +198,9 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       const directionsService = new google.maps.DirectionsService();
       const directionsRenderer = new google.maps.DirectionsRenderer({
         polylineOptions: {
-          strokeColor: '#3B82F6',
-          strokeWeight: 4,
+          strokeColor: '#3b82f6',
+          strokeWeight: 3,
+          strokeOpacity: 0.8,
         },
         suppressMarkers: true, // We're using custom markers
       });
@@ -178,7 +226,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     <div
       ref={mapRef}
       style={{ height }}
-      className={`w-full rounded-lg ${className}`}
+      className={`w-full rounded-lg border border-border shadow-sm overflow-hidden ${className}`}
     />
   );
 };
