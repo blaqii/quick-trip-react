@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { initializeGoogleMaps, getCurrentLocation } from '@/lib/maps';
+import MapContainer from './map/MapContainer';
 
 interface GoogleMapProps {
   height?: string;
@@ -47,84 +48,84 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
           }
         }
 
-        const mapInstance = new google.Map(mapRef.current, {
-          center,
-          zoom: 14,
-          styles: [
-            {
-              featureType: 'all',
-              elementType: 'geometry',
-              stylers: [{ color: '#1a1a1a' }],
-            },
-            {
-              featureType: 'all',
-              elementType: 'labels.text.fill',
-              stylers: [{ color: '#a1a1aa' }],
-            },
-            {
-              featureType: 'all',
-              elementType: 'labels.text.stroke',
-              stylers: [{ color: '#1a1a1a' }, { weight: 2 }],
-            },
-            {
-              featureType: 'road',
-              elementType: 'geometry',
-              stylers: [{ color: '#2a2a2a' }],
-            },
-            {
-              featureType: 'road',
-              elementType: 'geometry.stroke',
-              stylers: [{ color: '#404040' }],
-            },
-            {
-              featureType: 'road.highway',
-              elementType: 'geometry',
-              stylers: [{ color: '#333333' }],
-            },
-            {
-              featureType: 'road.arterial',
-              elementType: 'geometry',
-              stylers: [{ color: '#2a2a2a' }],
-            },
-            {
-              featureType: 'road.local',
-              elementType: 'geometry',
-              stylers: [{ color: '#252525' }],
-            },
-            {
-              featureType: 'water',
-              elementType: 'geometry',
-              stylers: [{ color: '#0f172a' }],
-            },
-            {
-              featureType: 'poi',
-              elementType: 'geometry',
-              stylers: [{ color: '#212121' }],
-            },
-            {
-              featureType: 'poi.park',
-              elementType: 'geometry',
-              stylers: [{ color: '#1a2e1a' }],
-            },
-            {
-              featureType: 'transit',
-              elementType: 'geometry',
-              stylers: [{ color: '#2a2a2a' }],
-            },
-            {
-              featureType: 'administrative',
-              elementType: 'geometry.stroke',
-              stylers: [{ color: '#404040' }],
-            },
-          ],
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-          zoomControl: true,
-          zoomControlOptions: {
-            position: google.ControlPosition.RIGHT_BOTTOM,
-          },
-        });
+const mapInstance = new google.Map(mapRef.current, {
+  center,
+  zoom: 14,
+  styles: [
+    {
+      featureType: 'all',
+      elementType: 'geometry',
+      stylers: [{ color: '#1a1a1a' }],
+    },
+    {
+      featureType: 'all',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#a1a1aa' }],
+    },
+    {
+      featureType: 'all',
+      elementType: 'labels.text.stroke',
+      stylers: [{ color: '#1a1a1a' }, { weight: 2 }],
+    },
+    {
+      featureType: 'road',
+      elementType: 'geometry',
+      stylers: [{ color: '#2a2a2a' }],
+    },
+    {
+      featureType: 'road',
+      elementType: 'geometry.stroke',
+      stylers: [{ color: '#404040' }],
+    },
+    {
+      featureType: 'road.highway',
+      elementType: 'geometry',
+      stylers: [{ color: '#333333' }],
+    },
+    {
+      featureType: 'road.arterial',
+      elementType: 'geometry',
+      stylers: [{ color: '#2a2a2a' }],
+    },
+    {
+      featureType: 'road.local',
+      elementType: 'geometry',
+      stylers: [{ color: '#252525' }],
+    },
+    {
+      featureType: 'water',
+      elementType: 'geometry',
+      stylers: [{ color: '#0f172a' }],
+    },
+    {
+      featureType: 'poi',
+      elementType: 'geometry',
+      stylers: [{ color: '#212121' }],
+    },
+    {
+      featureType: 'poi.park',
+      elementType: 'geometry',
+      stylers: [{ color: '#1a2e1a' }],
+    },
+    {
+      featureType: 'transit',
+      elementType: 'geometry',
+      stylers: [{ color: '#2a2a2a' }],
+    },
+    {
+      featureType: 'administrative',
+      elementType: 'geometry.stroke',
+      stylers: [{ color: '#404040' }],
+    },
+  ],
+  // Remove all default UI controls and enable 1‑finger pan on mobile
+  disableDefaultUI: true,
+  gestureHandling: 'greedy',
+  zoomControl: false,
+  mapTypeControl: false,
+  streetViewControl: false,
+  fullscreenControl: false,
+});
 
         setMap(mapInstance);
 
@@ -237,13 +238,13 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     }
   }, [map, userLocation, pickup, destination]);
 
-  return (
-    <div
-      ref={mapRef}
-      style={{ height }}
-      className={`w-full rounded-lg border border-border shadow-sm overflow-hidden ${className}`}
-    />
-  );
+return (
+  <MapContainer
+    ref={mapRef}
+    style={{ height }}
+    className={`w-full overflow-hidden ${className}`}
+  />
+);
 };
 
 export default GoogleMap;
