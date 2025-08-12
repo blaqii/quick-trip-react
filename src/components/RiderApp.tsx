@@ -22,6 +22,8 @@ import { useToast } from '@/hooks/use-toast';
 import GoogleMap from '@/components/GoogleMap';
 import LocationSearch from '@/components/LocationSearch';
 import ProfilePages from '@/components/ProfilePages';
+import ChangeRiderDialog from '@/components/rider/ChangeRiderDialog';
+import ScheduleScreen from '@/components/rider/ScheduleScreen';
 
 const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') => void }) => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -52,10 +54,12 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
     setSelectedLocation(location);
     setCurrentView('booking');
   }, []);
-  const [isOnline, setIsOnline] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
-  const [profilePage, setProfilePage] = useState<string | null>(null);
+const [isOnline, setIsOnline] = useState(false);
+const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+const [selectedTime, setSelectedTime] = useState<string>("");
+const [activeRiderName, setActiveRiderName] = useState<string>(userProfile?.name || currentUser?.email || "");
+const [changeRiderOpen, setChangeRiderOpen] = useState(false);
+const [profilePage, setProfilePage] = useState<string | null>(null);
 
   const HomeScreen = () => (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -111,10 +115,10 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
             <Calendar className="w-5 h-5" />
             <span>Schedule</span>
           </Button>
-          <Button variant="outline" className="flex items-center space-x-2">
-            <User className="w-5 h-5" />
-            <span>Change rider</span>
-          </Button>
+<Button variant="outline" className="flex items-center space-x-2" onClick={() => setChangeRiderOpen(true)}>
+  <User className="w-5 h-5" />
+  <span>Change rider</span>
+</Button>
         </div>
 
         {/* Connection Status - Hidden */}
@@ -187,14 +191,14 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
 
         {/* Quick Actions */}
         <div className="flex space-x-4 mb-6">
-          <Button variant="secondary" className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5" />
-            <span>Schedule</span>
-          </Button>
-          <Button variant="secondary" className="flex items-center space-x-2">
-            <User className="w-5 h-5" />
-            <span>Change rider</span>
-          </Button>
+<Button variant="secondary" className="flex items-center space-x-2">
+  <Calendar className="w-5 h-5" />
+  <span>Schedule</span>
+</Button>
+<Button variant="secondary" className="flex items-center space-x-2" onClick={() => setChangeRiderOpen(true)}>
+  <User className="w-5 h-5" />
+  <span>Change rider</span>
+</Button>
         </div>
 
         {/* Route Input */}
@@ -339,13 +343,13 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
           size="driver"
           onClick={async () => {
             try {
-              await createRideRequest({
-                riderId: currentUser!.uid,
-                riderName: userProfile?.name || currentUser!.email!,
-                pickup: 'Downtown', // In a real app, this would be user's current location
-                destination: selectedDestination,
-                fare: 23.99
-              });
+await createRideRequest({
+  riderId: currentUser!.uid,
+  riderName: activeRiderName || userProfile?.name || currentUser!.email!,
+  pickup: 'Downtown', // In a real app, this would be user's current location
+  destination: selectedDestination,
+  fare: 23.99
+});
               
               toast({
                 title: "Ride Requested!",
@@ -572,15 +576,43 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
     );
   }
 
-  return (
-    <div className="relative">
-      {currentView === 'home' && <HomeScreen />}
-      {currentView === 'search' && <SearchScreen />}
-      {currentView === 'booking' && <BookingScreen />}
-      {currentView === 'trips' && <TripsScreen />}
-      {currentView === 'profile' && <ProfileScreen />}
-    </div>
-  );
+return (
+  <div className="relative">
+    {currentView === 'home' && <HomeScreen />}
+    {currentView === 'search' && <SearchScreen />}
+    {currentView === 'booking' && <BookingScreen />}
+    {currentView === 'trips' && <TripsScreen />}
+    {currentView === 'profile' && <ProfileScreen />}
+    {currentView === 'schedule' && (
+      <ScheduleScreen
+        date={selectedDate}
+        time={selectedTime}
+        onBack={() => setCurrentView('home')}
+        onDateChange={setSelectedDate}
+        onTimeChange={setSelectedTime}
+        onConfirm={() => {
+          // Only UI-level scheduling for now
+          toast({
+            title: 'Ride scheduled',
+            description: `${selectedDate?.toLocaleDateString()} at ${selectedTime}`,
+          });
+          setCurrentView('home');
+        }}
+      />
+    )}
+
+    {/* Change Rider Dialog */}
+    <ChangeRiderDialog
+      open={changeRiderOpen}
+      onOpenChange={setChangeRiderOpen}
+      currentName={activeRiderName}
+      onSave={(name) => {
+        setActiveRiderName(name);
+        toast({ title: 'Rider updated', description: `Now booking as ${name}` });
+      }}
+    />
+  </div>
+);
 };
 
 export default RiderApp;
