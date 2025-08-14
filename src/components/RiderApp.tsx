@@ -57,7 +57,10 @@ const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') =
 const [isOnline, setIsOnline] = useState(false);
 const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 const [selectedTime, setSelectedTime] = useState<string>("");
-const [activeRiderName, setActiveRiderName] = useState<string>(userProfile?.name || currentUser?.email || "");
+const [activeRider, setActiveRider] = useState<{name: string, phone: string}>({
+  name: userProfile?.name || currentUser?.email || "",
+  phone: userProfile?.phone || ""
+});
 const [changeRiderOpen, setChangeRiderOpen] = useState(false);
 const [profilePage, setProfilePage] = useState<string | null>(null);
 
@@ -345,7 +348,7 @@ const [profilePage, setProfilePage] = useState<string | null>(null);
             try {
 await createRideRequest({
   riderId: currentUser!.uid,
-  riderName: activeRiderName || userProfile?.name || currentUser!.email!,
+  riderName: activeRider.name || userProfile?.name || currentUser!.email!,
   pickup: 'Downtown', // In a real app, this would be user's current location
   destination: selectedDestination,
   fare: 23.99
@@ -605,10 +608,10 @@ return (
     <ChangeRiderDialog
       open={changeRiderOpen}
       onOpenChange={setChangeRiderOpen}
-      currentName={activeRiderName}
-      onSave={(name) => {
-        setActiveRiderName(name);
-        toast({ title: 'Rider updated', description: `Now booking as ${name}` });
+      currentRider={activeRider}
+      onSave={(rider) => {
+        setActiveRider(rider);
+        toast({ title: 'Rider updated', description: `Now booking as ${rider.name}` });
       }}
     />
   </div>
