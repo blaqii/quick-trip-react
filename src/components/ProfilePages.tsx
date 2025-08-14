@@ -1,22 +1,72 @@
 import React, { useState } from 'react';
-import { ChevronLeft, CreditCard, MapPin, Bell, Lock, HelpCircle, Star, Plus, X } from 'lucide-react';
+import { ChevronLeft, CreditCard, MapPin, Bell, Lock, HelpCircle, Star, Plus, X, Car, Calendar, User, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
+import AddPaymentMethodDialog from '@/components/ui/add-payment-method-dialog';
+import MapboxSecretForm from '@/components/MapboxSecretForm';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfilePagesProps {
   currentPage: string;
   onBack: () => void;
 }
 
+// Bottom Navigation Component
+const BottomNavigation: React.FC<{
+  currentView: string;
+  onViewChange: (view: string) => void;
+}> = ({ currentView, onViewChange }) => (
+  <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-sm border-t">
+    <div className="flex justify-around py-4">
+      <button 
+        onClick={() => onViewChange('home')}
+        className="flex flex-col items-center space-y-1"
+      >
+        <Car className={`w-6 h-6 ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground'}`} />
+        <span className={`text-xs ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground'}`}>Rides</span>
+      </button>
+      <button 
+        onClick={() => onViewChange('trips')}
+        className="flex flex-col items-center space-y-1"
+      >
+        <Calendar className={`w-6 h-6 ${currentView === 'trips' ? 'text-primary' : 'text-muted-foreground'}`} />
+        <span className={`text-xs ${currentView === 'trips' ? 'text-primary' : 'text-muted-foreground'}`}>Trips</span>
+      </button>
+      <button 
+        onClick={() => onViewChange('profile')}
+        className="flex flex-col items-center space-y-1"
+      >
+        <User className={`w-6 h-6 ${currentView === 'profile' ? 'text-primary' : 'text-muted-foreground'}`} />
+        <span className={`text-xs ${currentView === 'profile' ? 'text-primary' : 'text-muted-foreground'}`}>You</span>
+      </button>
+    </div>
+  </div>
+);
+
 const ProfilePages: React.FC<ProfilePagesProps> = ({ currentPage, onBack }) => {
   const { userProfile, currentUser } = useAuth();
+  const { toast } = useToast();
+  const [addPaymentOpen, setAddPaymentOpen] = useState(false);
+  const [mapboxSecretOpen, setMapboxSecretOpen] = useState(false);
+  const [mapboxToken, setMapboxToken] = useState<string>('');
 
   const PaymentMethodsPage = () => {
-    const [cards] = useState([
+    const [cards, setCards] = useState([
       { id: 1, last4: '4242', brand: 'Visa', isDefault: true },
       { id: 2, last4: '1234', brand: 'Mastercard', isDefault: false }
     ]);
+
+    const handleAddPayment = (newCard: any) => {
+      setCards([...cards, newCard]);
+      setAddPaymentOpen(false);
+    };
+
+    const handleRemoveCard = (cardId: number) => {
+      setCards(cards.filter(card => card.id !== cardId));
+    };
 
     return (
       <div className="min-h-screen bg-background text-foreground">
@@ -30,7 +80,10 @@ const ProfilePages: React.FC<ProfilePagesProps> = ({ currentPage, onBack }) => {
           </div>
 
           {/* Add Payment Method */}
-          <Button className="w-full mb-6 flex items-center space-x-2">
+          <Button 
+            className="w-full mb-6 flex items-center space-x-2"
+            onClick={() => setAddPaymentOpen(true)}
+          >
             <Plus className="w-5 h-5" />
             <span>Add payment method</span>
           </Button>
@@ -51,7 +104,11 @@ const ProfilePages: React.FC<ProfilePagesProps> = ({ currentPage, onBack }) => {
                       )}
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleRemoveCard(card.id)}
+                  >
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
@@ -59,6 +116,16 @@ const ProfilePages: React.FC<ProfilePagesProps> = ({ currentPage, onBack }) => {
             ))}
           </div>
         </div>
+        
+        {/* Bottom Navigation */}
+        <BottomNavigation currentView="profile" onViewChange={() => onBack()} />
+        
+        {/* Add Payment Method Dialog */}
+        <AddPaymentMethodDialog
+          open={addPaymentOpen}
+          onOpenChange={setAddPaymentOpen}
+          onSave={handleAddPayment}
+        />
       </div>
     );
   };
@@ -106,11 +173,32 @@ const ProfilePages: React.FC<ProfilePagesProps> = ({ currentPage, onBack }) => {
             ))}
           </div>
         </div>
+        
+        {/* Bottom Navigation */}
+        <BottomNavigation currentView="profile" onViewChange={() => onBack()} />
       </div>
     );
   };
 
   const AccountSettingsPage = () => {
+    const [useMapbox, setUseMapbox] = useState(false);
+    
+    const handleMapboxToggle = (checked: boolean) => {
+      if (checked && !mapboxToken) {
+        setMapboxSecretOpen(true);
+        return;
+      }
+      setUseMapbox(checked);
+      if (!checked) {
+        setMapboxToken('');
+      }
+    };
+
+    const handleMapboxTokenSave = (token: string) => {
+      setMapboxToken(token);
+      setUseMapbox(true);
+    };
+    
     return (
       <div className="min-h-screen bg-background text-foreground">
         <div className="p-6">
@@ -177,10 +265,45 @@ const ProfilePages: React.FC<ProfilePagesProps> = ({ currentPage, onBack }) => {
                 </div>
               </div>
             </div>
+
+            {/* Map Provider Selection */}
+            <div className="bg-card rounded-xl p-4 border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Map className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Map Provider</p>
+                    <p className="text-sm text-muted-foreground">
+                      {useMapbox ? 'Using Mapbox' : 'Using Google Maps'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="mapbox-toggle" className="text-sm text-muted-foreground">
+                    Mapbox
+                  </Label>
+                  <Switch
+                    id="mapbox-toggle"
+                    checked={useMapbox}
+                    onCheckedChange={handleMapboxToggle}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <Button className="w-full mt-6">Save changes</Button>
         </div>
+        
+        {/* Bottom Navigation */}
+        <BottomNavigation currentView="profile" onViewChange={() => onBack()} />
+        
+        {/* Mapbox Secret Form */}
+        <MapboxSecretForm
+          open={mapboxSecretOpen}
+          onOpenChange={setMapboxSecretOpen}
+          onSave={handleMapboxTokenSave}
+        />
       </div>
     );
   };
@@ -237,6 +360,9 @@ const ProfilePages: React.FC<ProfilePagesProps> = ({ currentPage, onBack }) => {
             <Button className="w-full">Contact support</Button>
           </div>
         </div>
+        
+        {/* Bottom Navigation */}
+        <BottomNavigation currentView="profile" onViewChange={() => onBack()} />
       </div>
     );
   };

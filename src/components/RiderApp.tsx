@@ -377,21 +377,14 @@ await createRideRequest({
 
   const TripsScreen = () => (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="p-6">
+      <div className="p-6 pb-24">
         {/* Header */}
         <div className="mb-8 pt-8">
-          <h1 className="text-4xl font-bold mb-4">Your trips</h1>
-          <p className="text-muted-foreground">Review your ride history and receipts</p>
+          <h1 className="text-3xl font-bold">Your trips</h1>
+          <p className="text-muted-foreground">All your completed rides</p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex space-x-4 mb-6">
-          <Button variant="default" size="sm">All trips</Button>
-          <Button variant="outline" size="sm">This month</Button>
-          <Button variant="outline" size="sm">This year</Button>
-        </div>
-
-        {/* Trip History */}
+        {/* Trips List */}
         <div className="space-y-4">
           {tripsLoading ? (
             <div className="text-center py-8">
@@ -426,12 +419,39 @@ await createRideRequest({
           )}
         </div>
       </div>
+      
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-sm border-t">
+        <div className="flex justify-around py-4">
+          <button 
+            onClick={() => setCurrentView('home')}
+            className="flex flex-col items-center space-y-1"
+          >
+            <Car className={`w-6 h-6 ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground'}`} />
+            <span className={`text-xs ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground'}`}>Rides</span>
+          </button>
+          <button 
+            onClick={() => setCurrentView('trips')}
+            className="flex flex-col items-center space-y-1"
+          >
+            <Calendar className={`w-6 h-6 ${currentView === 'trips' ? 'text-primary' : 'text-muted-foreground'}`} />
+            <span className={`text-xs ${currentView === 'trips' ? 'text-primary' : 'text-muted-foreground'}`}>Trips</span>
+          </button>
+          <button 
+            onClick={() => setCurrentView('profile')}
+            className="flex flex-col items-center space-y-1"
+          >
+            <User className={`w-6 h-6 ${currentView === 'profile' ? 'text-primary' : 'text-muted-foreground'}`} />
+            <span className={`text-xs ${currentView === 'profile' ? 'text-primary' : 'text-muted-foreground'}`}>You</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 
   const ProfileScreen = () => (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="p-6">
+      <div className="p-6 pb-24">
         {/* Header */}
         <div className="mb-8 pt-8">
           <div className="flex items-center space-x-4 mb-6">
@@ -564,6 +584,33 @@ await createRideRequest({
           <Button variant="outline" className="w-full" onClick={logout}>
             Sign out
           </Button>
+        </div>
+      </div>
+      
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-sm border-t">
+        <div className="flex justify-around py-4">
+          <button 
+            onClick={() => setCurrentView('home')}
+            className="flex flex-col items-center space-y-1"
+          >
+            <Car className={`w-6 h-6 ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground'}`} />
+            <span className={`text-xs ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground'}`}>Rides</span>
+          </button>
+          <button 
+            onClick={() => setCurrentView('trips')}
+            className="flex flex-col items-center space-y-1"
+          >
+            <Calendar className={`w-6 h-6 ${currentView === 'trips' ? 'text-primary' : 'text-muted-foreground'}`} />
+            <span className={`text-xs ${currentView === 'trips' ? 'text-primary' : 'text-muted-foreground'}`}>Trips</span>
+          </button>
+          <button 
+            onClick={() => setCurrentView('profile')}
+            className="flex flex-col items-center space-y-1"
+          >
+            <User className={`w-6 h-6 ${currentView === 'profile' ? 'text-primary' : 'text-muted-foreground'}`} />
+            <span className={`text-xs ${currentView === 'profile' ? 'text-primary' : 'text-muted-foreground'}`}>You</span>
+          </button>
         </div>
       </div>
     </div>
