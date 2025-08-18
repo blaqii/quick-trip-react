@@ -26,6 +26,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [lastSelectedLocation, setLastSelectedLocation] = useState<LocationSuggestion | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesService = useRef<google.maps.places.PlacesService | null>(null);
@@ -192,14 +193,16 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
   const handleSelect = (suggestion: LocationSuggestion) => {
     onChange(suggestion.name);
     onSelect(suggestion);
+    setLastSelectedLocation(suggestion);
     setSuggestions([]);
     setShowSuggestions(false);
   };
 
   const handleFocus = () => {
     setShowSuggestions(true);
-    if (suggestions.length > 0) {
-      setShowSuggestions(true);
+    // Show last location if available and no current suggestions
+    if (suggestions.length === 0 && !value && lastSelectedLocation) {
+      setSuggestions([lastSelectedLocation]);
     }
   };
 
@@ -224,9 +227,14 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
         autoComplete="off"
       />
       
-      {/* Suggestions Dropdown */}
+      {/* Suggestions Dropdown - Positioned to break out of parent containers */}
       {showSuggestions && (suggestions.length > 0 || isLoading) && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-background border rounded-xl shadow-lg max-h-80 overflow-y-auto">
+        <div className="fixed inset-x-4 z-[100] mt-2 bg-background border rounded-xl shadow-lg max-h-80 overflow-y-auto"
+             style={{
+               top: inputRef.current ? 
+                 inputRef.current.getBoundingClientRect().bottom + window.scrollY + 8 + 'px' : 
+                 'auto'
+             }}>
           {isLoading ? (
             <div className="p-4 text-center text-muted-foreground">
               Searching...
@@ -235,8 +243,12 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
             <div className="space-y-1 p-2">
               {suggestions.map((suggestion, index) => (
                 <button
-                  key={suggestion.placeId}
-                  onClick={() => handleSelect(suggestion)}
+                  key={`${suggestion.placeId}-${index}`}
+                  onMouseDown={(e) => {
+                    // Prevent input from losing focus
+                    e.preventDefault();
+                    handleSelect(suggestion);
+                  }}
                   className="w-full flex items-center space-x-4 p-3 hover:bg-secondary rounded-lg transition-colors text-left"
                 >
                   <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
