@@ -24,6 +24,7 @@ import LocationSearch from '@/components/LocationSearch';
 import ProfilePages from '@/components/ProfilePages';
 import ChangeRiderDialog from '@/components/rider/ChangeRiderDialog';
 import ScheduleScreen from '@/components/rider/ScheduleScreen';
+import ScheduleModal from '@/components/rider/ScheduleModal';
 
 const RiderApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') => void }) => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -62,6 +63,8 @@ const [activeRider, setActiveRider] = useState<{name: string, phone: string}>({
   phone: userProfile?.phone || ""
 });
 const [changeRiderOpen, setChangeRiderOpen] = useState(false);
+const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+const [previousRiders, setPreviousRiders] = useState<{name: string, phone: string}[]>([]);
 const [profilePage, setProfilePage] = useState<string | null>(null);
 
   const HomeScreen = () => (
@@ -112,7 +115,7 @@ const [profilePage, setProfilePage] = useState<string | null>(null);
         <div className="flex space-x-4 mb-8">
           <Button 
             variant="outline"
-            onClick={() => setCurrentView('schedule')}
+            onClick={() => setScheduleModalOpen(true)}
             className="flex items-center space-x-2"
           >
             <Calendar className="w-5 h-5" />
@@ -194,7 +197,7 @@ const [profilePage, setProfilePage] = useState<string | null>(null);
 
         {/* Quick Actions */}
         <div className="flex space-x-4 mb-6">
-<Button variant="secondary" className="flex items-center space-x-2">
+<Button variant="secondary" className="flex items-center space-x-2" onClick={() => setScheduleModalOpen(true)}>
   <Calendar className="w-5 h-5" />
   <span>Schedule</span>
 </Button>
@@ -656,9 +659,24 @@ return (
       open={changeRiderOpen}
       onOpenChange={setChangeRiderOpen}
       currentRider={activeRider}
+      previousRiders={previousRiders}
       onSave={(rider) => {
         setActiveRider(rider);
+        // Add to previous riders if not already there
+        if (!previousRiders.find(r => r.name === rider.name && r.phone === rider.phone)) {
+          setPreviousRiders(prev => [rider, ...prev.slice(0, 4)]); // Keep only 5 recent riders
+        }
         toast({ title: 'Rider updated', description: `Now booking as ${rider.name}` });
+      }}
+    />
+
+    {/* Schedule Modal */}
+    <ScheduleModal
+      open={scheduleModalOpen}
+      onOpenChange={setScheduleModalOpen}
+      onSchedule={(date, time) => {
+        setSelectedDate(date);
+        setSelectedTime(time);
       }}
     />
   </div>
