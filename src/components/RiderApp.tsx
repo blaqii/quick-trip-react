@@ -139,12 +139,13 @@ const [profilePage, setProfilePage] = useState<string | null>(null);
         )}
 
         {/* Map Section */}
-        <div className="mb-6">
+        <div className="mb-6 pb-32">
           <h2 className="text-2xl font-bold mb-4">You are here</h2>
           <div className="bg-card/70 backdrop-blur-sm rounded-2xl p-4 border">
             <GoogleMap 
               height="256px" 
               showUserLocation={true}
+              followUserLocation={true}
               className="rounded-lg"
             />
           </div>

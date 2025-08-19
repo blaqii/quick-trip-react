@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import AddPaymentMethodDialog from '@/components/ui/add-payment-method-dialog';
-import MapboxSecretForm from '@/components/MapboxSecretForm';
+
 import { useToast } from '@/hooks/use-toast';
 
 interface ProfilePagesProps {
@@ -298,12 +298,6 @@ const ProfilePages: React.FC<ProfilePagesProps> = ({ currentPage, onBack }) => {
         {/* Bottom Navigation */}
         <BottomNavigation currentView="profile" onViewChange={() => onBack()} />
         
-        {/* Mapbox Secret Form */}
-        <MapboxSecretForm
-          open={mapboxSecretOpen}
-          onOpenChange={setMapboxSecretOpen}
-          onSave={handleMapboxTokenSave}
-        />
       </div>
     );
   };
