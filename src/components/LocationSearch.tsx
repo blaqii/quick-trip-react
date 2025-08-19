@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MapPin, Navigation, Car } from 'lucide-react';
 import { initializeGoogleMaps } from '@/lib/maps';
 
@@ -174,7 +174,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
     setShowSuggestions(true);
@@ -188,30 +188,34 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
     debounceTimeoutRef.current = setTimeout(() => {
       searchPlaces(newValue);
     }, 300);
-  };
+  }, [onChange]);
 
-  const handleSelect = (suggestion: LocationSuggestion) => {
-    onChange(suggestion.name);
-    onSelect(suggestion);
-    setLastSelectedLocation(suggestion);
-    setSuggestions([]);
-    setShowSuggestions(false);
-  };
-
-  const handleFocus = () => {
+  const handleFocus = useCallback(() => {
     setShowSuggestions(true);
     // Show last location if available and no current suggestions
     if (suggestions.length === 0 && !value && lastSelectedLocation) {
       setSuggestions([lastSelectedLocation]);
     }
-  };
+  }, [suggestions.length, value, lastSelectedLocation]);
 
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
     // Delay hiding suggestions to allow for clicks
     setTimeout(() => {
       setShowSuggestions(false);
     }, 200);
-  };
+  }, []);
+
+  const handleSelect = useCallback((suggestion: LocationSuggestion) => {
+    onChange(suggestion.name);
+    onSelect(suggestion);
+    setLastSelectedLocation(suggestion);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    // Ensure input maintains focus
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [onChange, onSelect]);
 
   return (
     <div className="relative">
