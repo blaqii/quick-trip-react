@@ -1,7 +1,9 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, ChevronLeft } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
+import CircularTimePicker from "@/components/ui/circular-time-picker";
 import { cn } from "@/lib/utils";
 
 interface ScheduleScreenProps {
@@ -13,25 +15,17 @@ interface ScheduleScreenProps {
   onConfirm: () => void;
 }
 
-const times = [
-  "07:00", "07:15", "07:30", "07:45",
-  "08:00", "08:15", "08:30", "08:45",
-  "09:00", "09:15", "09:30", "09:45",
-  "10:00", "10:15", "10:30", "10:45",
-  "11:00", "11:15", "11:30", "11:45",
-  "12:00", "12:15", "12:30", "12:45",
-  "13:00", "13:15", "13:30", "13:45",
-  "14:00", "14:15", "14:30", "14:45",
-  "15:00", "15:15", "15:30", "15:45",
-  "16:00", "16:15", "16:30", "16:45",
-  "17:00", "17:15", "17:30", "17:45",
-  "18:00", "18:15", "18:30", "18:45",
-];
-
-const ScheduleScreen: React.FC<ScheduleScreenProps> = ({ date, time, onBack, onDateChange, onTimeChange, onConfirm }) => {
+const ScheduleScreen: React.FC<ScheduleScreenProps> = ({ 
+  date, 
+  time = "12:00", 
+  onBack, 
+  onDateChange, 
+  onTimeChange, 
+  onConfirm 
+}) => {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="p-6">
+      <div className="p-6 pb-32"> {/* Added bottom padding for footer space */}
         {/* Header */}
         <div className="flex items-center mb-6">
           <Button variant="ghost" size="icon" onClick={onBack}>
@@ -57,26 +51,20 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({ date, time, onBack, onD
         </div>
 
         {/* Time picker */}
-        <div className="bg-card rounded-2xl p-4 border">
-          <label className="text-sm text-muted-foreground mb-2 block">Pick a time</label>
-          <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-            {times.map((t) => (
-              <button
-                key={t}
-                className={cn(
-                  "py-2 px-3 rounded-md border text-sm transition-colors",
-                  time === t ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-secondary/50"
-                )}
-                onClick={() => onTimeChange(t)}
-              >
-                {t}
-              </button>
-            ))}
+        <div className="bg-card rounded-2xl p-4 border mb-6">
+          <div className="flex items-center mb-4">
+            <span className="text-sm text-muted-foreground">Pick a time</span>
+          </div>
+          <div className="flex justify-center">
+            <CircularTimePicker
+              value={time}
+              onChange={onTimeChange}
+            />
           </div>
         </div>
 
         {/* Confirm */}
-        <Button className="w-full mt-6" size="driver" onClick={onConfirm} disabled={!date || !time}>
+        <Button className="w-full" size="driver" onClick={onConfirm} disabled={!date || !time}>
           Confirm schedule
         </Button>
       </div>

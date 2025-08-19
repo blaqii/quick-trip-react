@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { initializeGoogleMaps, getCurrentLocation } from '@/lib/maps';
 import MapContainer from './map/MapContainer';
@@ -9,6 +10,7 @@ interface GoogleMapProps {
   destination?: google.maps.LatLngLiteral;
   onLocationSelect?: (location: google.maps.LatLngLiteral) => void;
   className?: string;
+  followUserLocation?: boolean;
 }
 
 const GoogleMap: React.FC<GoogleMapProps> = ({
@@ -18,6 +20,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   destination,
   onLocationSelect,
   className = '',
+  followUserLocation = false,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -118,10 +121,12 @@ const mapInstance = new google.Map(mapRef.current, {
       stylers: [{ color: '#404040' }],
     },
   ],
-  // Remove all default UI controls and enable 1‑finger pan on mobile
+  // Configure map controls based on followUserLocation
   disableDefaultUI: true,
-  gestureHandling: 'greedy',
-  zoomControl: false,
+  gestureHandling: followUserLocation ? 'none' : 'greedy',
+  draggable: !followUserLocation,
+  scrollwheel: !followUserLocation,
+  zoomControl: !followUserLocation,
   mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: false,
@@ -129,8 +134,8 @@ const mapInstance = new google.Map(mapRef.current, {
 
         setMap(mapInstance);
 
-        // Add click listener for location selection
-        if (onLocationSelect) {
+        // Add click listener for location selection (only if not following user)
+        if (onLocationSelect && !followUserLocation) {
           mapInstance.addListener('click', (event: google.maps.MapMouseEvent) => {
             if (event.latLng) {
               onLocationSelect({
@@ -146,7 +151,36 @@ const mapInstance = new google.Map(mapRef.current, {
     };
 
     initMap();
-  }, [showUserLocation, onLocationSelect]);
+  }, [showUserLocation, onLocationSelect, followUserLocation]);
+
+  // Continuously track user location if followUserLocation is enabled
+  useEffect(() => {
+    if (!followUserLocation || !map) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setUserLocation(newLocation);
+        // Center map on new location
+        map.panTo(newLocation);
+      },
+      (error) => {
+        console.error('Error tracking location:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 1000,
+        timeout: 5000,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, [followUserLocation, map]);
 
   // Add markers when pickup/destination change
   useEffect(() => {
