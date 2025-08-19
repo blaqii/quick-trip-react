@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRideRequests, useUserTrips } from '@/hooks/useFirestore';
 import { useToast } from '@/hooks/use-toast';
-import GoogleMap from '@/components/GoogleMap';
+import UniversalMap from '@/components/UniversalMap';
 import LocationSearch from '@/components/LocationSearch';
 import ProfilePages from '@/components/ProfilePages';
 import ChangeRiderDialog from '@/components/rider/ChangeRiderDialog';
@@ -142,7 +142,7 @@ const [profilePage, setProfilePage] = useState<string | null>(null);
         <div className="mb-6 pb-32">
           <h2 className="text-2xl font-bold mb-4">You are here</h2>
           <div className="bg-card/70 backdrop-blur-sm rounded-2xl p-4 border">
-            <GoogleMap 
+            <UniversalMap 
               height="256px" 
               showUserLocation={true}
               followUserLocation={true}

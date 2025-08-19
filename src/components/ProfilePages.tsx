@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMapSettings } from '@/contexts/MapContext';
 import AddPaymentMethodDialog from '@/components/ui/add-payment-method-dialog';
-
 import { useToast } from '@/hooks/use-toast';
 
 interface ProfilePagesProps {
@@ -50,8 +50,6 @@ const ProfilePages: React.FC<ProfilePagesProps> = ({ currentPage, onBack }) => {
   const { userProfile, currentUser } = useAuth();
   const { toast } = useToast();
   const [addPaymentOpen, setAddPaymentOpen] = useState(false);
-  const [mapboxSecretOpen, setMapboxSecretOpen] = useState(false);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
 
   const PaymentMethodsPage = () => {
     const [cards, setCards] = useState([
@@ -181,22 +179,10 @@ const ProfilePages: React.FC<ProfilePagesProps> = ({ currentPage, onBack }) => {
   };
 
   const AccountSettingsPage = () => {
-    const [useMapbox, setUseMapbox] = useState(false);
+    const { useMapbox, setUseMapbox } = useMapSettings();
     
     const handleMapboxToggle = (checked: boolean) => {
-      if (checked && !mapboxToken) {
-        setMapboxSecretOpen(true);
-        return;
-      }
       setUseMapbox(checked);
-      if (!checked) {
-        setMapboxToken('');
-      }
-    };
-
-    const handleMapboxTokenSave = (token: string) => {
-      setMapboxToken(token);
-      setUseMapbox(true);
     };
     
     return (

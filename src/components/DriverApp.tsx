@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRideRequests, useUserTrips } from '@/hooks/useFirestore';
 import { useToast } from '@/hooks/use-toast';
-import GoogleMap from '@/components/GoogleMap';
+import UniversalMap from '@/components/UniversalMap';
 
 const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') => void }) => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -192,7 +192,7 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
               Center
             </Button>
           </div>
-          <GoogleMap 
+          <UniversalMap 
             height="256px" 
             showUserLocation={true}
             className="rounded-lg"
