@@ -184,7 +184,7 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
         </div>
 
         {/* Map */}
-        <div className="bg-gradient-card rounded-xl p-4 shadow-card">
+        <div className="bg-gradient-card rounded-xl p-4 shadow-card pb-32">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Your Location</h3>
             <Button variant="outline" size="sm">
