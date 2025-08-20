@@ -13,13 +13,21 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Plus,
-  LogOut
+  LogOut,
+  Settings,
+  Wallet,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRideRequests, useUserTrips } from '@/hooks/useFirestore';
 import { useToast } from '@/hooks/use-toast';
 import UniversalMap from '@/components/UniversalMap';
+import VehicleInformation from '@/components/driver/VehicleInformation';
+import DriverWallet from '@/components/driver/DriverWallet';
+import DriverTrips from '@/components/driver/DriverTrips';
+import DriverAccountSettings from '@/components/driver/DriverAccountSettings';
+import DriverNavigation from '@/components/driver/DriverNavigation';
 
 const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') => void }) => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -32,6 +40,7 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
   const [incomingRequest, setIncomingRequest] = useState<any>(null);
   const [currentTrip, setCurrentTrip] = useState<any>(null);
   const [earnings, setEarnings] = useState(0);
+  const [showNavigation, setShowNavigation] = useState(false);
   
   // Calculate today's earnings from completed trips
   useEffect(() => {
@@ -67,7 +76,7 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
         );
         setCurrentTrip(incomingRequest);
         setIncomingRequest(null);
-        setCurrentView('trip');
+        setShowNavigation(true);
         
         toast({
           title: "Ride Accepted!",
@@ -92,6 +101,7 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
       if (currentTrip && currentTrip.id) {
         await updateRideStatus(currentTrip.id, 'completed');
         setCurrentTrip(null);
+        setShowNavigation(false);
         setCurrentView('home');
         
         toast({
@@ -237,11 +247,11 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
             <span className="text-xs text-primary">Home</span>
           </button>
           <button 
-            onClick={() => setCurrentView('earnings')}
+            onClick={() => setCurrentView('wallet')}
             className="flex flex-col items-center space-y-1"
           >
-            <CreditCard className="w-6 h-6 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Earnings</span>
+            <Wallet className="w-6 h-6 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Wallet</span>
           </button>
           <button 
             onClick={() => setCurrentView('profile')}
@@ -512,90 +522,178 @@ const DriverApp = ({ onModeSwitch }: { onModeSwitch: (mode: 'driver' | 'rider') 
           <h1 className="text-2xl font-bold ml-4">Profile</h1>
         </div>
 
-        {/* Driver Info */}
+        {/* Profile Info */}
         <div className="bg-gradient-card rounded-xl p-6 shadow-card mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center">
-              <User className="w-10 h-10 text-primary-foreground" />
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center">
+              <User className="w-8 h-8 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Mike Johnson</h2>
-              <p className="text-muted-foreground">★ 4.8 • 247 trips</p>
-              <p className="text-sm text-muted-foreground">Member since March 2023</p>
+              <h2 className="text-xl font-bold">{userProfile?.name || 'Driver'}</h2>
+              <p className="text-muted-foreground">{currentUser?.email}</p>
+              <div className="flex items-center space-x-2 mt-2">
+                <div className="w-2 h-2 bg-driver-online rounded-full"></div>
+                <span className="text-sm text-success">Active Driver</span>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-gradient-card rounded-xl p-4 shadow-card text-center">
-            <p className="text-2xl font-bold text-primary">4.8</p>
-            <p className="text-sm text-muted-foreground">Rating</p>
-          </div>
-          <div className="bg-gradient-card rounded-xl p-4 shadow-card text-center">
-            <p className="text-2xl font-bold text-success">98%</p>
-            <p className="text-sm text-muted-foreground">Acceptance Rate</p>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold">4.9</p>
+              <p className="text-sm text-muted-foreground">Rating</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">{myTrips.length}</p>
+              <p className="text-sm text-muted-foreground">Total Trips</p>
+            </div>
           </div>
         </div>
 
         {/* Menu Items */}
-        <div className="bg-gradient-card rounded-xl p-4 shadow-card mb-6">
-          <div className="space-y-1">
-            {[
-              { icon: Car, label: 'Vehicle Information' },
-              { icon: CreditCard, label: 'Payment Methods' },
-              { icon: Clock, label: 'Drive History' },
-              { icon: User, label: 'Account Settings' },
-            ].map((item, index) => (
-              <button
-                key={index}
-                className="w-full flex items-center space-x-3 p-3 hover:bg-secondary rounded-lg transition-colors"
-              >
-                <item.icon className="w-5 h-5 text-muted-foreground" />
-                <span className="flex-1 text-left">{item.label}</span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </button>
-            ))}
+        <div className="space-y-4">
+          <div className="bg-card rounded-xl border shadow-sm">
+            <button 
+              onClick={() => setCurrentView('vehicle')}
+              className="w-full p-4 text-left flex items-center space-x-4 hover:bg-secondary rounded-xl"
+            >
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Car className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium">Vehicle Information</p>
+                <p className="text-sm text-muted-foreground">Toyota Camry • ABC123</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
+
+          <div className="bg-card rounded-xl border shadow-sm">
+            <button 
+              onClick={() => setCurrentView('wallet')}
+              className="w-full p-4 text-left flex items-center space-x-4 hover:bg-secondary rounded-xl"
+            >
+              <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-success" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium">Wallet</p>
+                <p className="text-sm text-muted-foreground">Balance and payout history</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
+
+          <div className="bg-card rounded-xl border shadow-sm">
+            <button 
+              onClick={() => setCurrentView('trips')}
+              className="w-full p-4 text-left flex items-center space-x-4 hover:bg-secondary rounded-xl"
+            >
+              <div className="w-10 h-10 bg-warning/10 rounded-lg flex items-center justify-center">
+                <FileText className="w-5 h-5 text-warning" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium">Trips</p>
+                <p className="text-sm text-muted-foreground">View trip history</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
+
+          <div className="bg-card rounded-xl border shadow-sm">
+            <button 
+              onClick={() => setCurrentView('account')}
+              className="w-full p-4 text-left flex items-center space-x-4 hover:bg-secondary rounded-xl"
+            >
+              <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                <Settings className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium">Account Settings</p>
+                <p className="text-sm text-muted-foreground">Privacy, notifications</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
           </div>
         </div>
 
-        {/* App Mode Switch */}
-        <div className="bg-card/90 backdrop-blur-sm border rounded-xl p-1 flex w-full mb-4">
-          <Button
-            variant="default"
-            size="sm"
-            className="flex items-center space-x-2 flex-1"
-          >
-            <Car className="w-4 h-4" />
-            <span>Driver</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onModeSwitch('rider')}
-            className="flex items-center space-x-2 flex-1"
-          >
-            <User className="w-4 h-4" />
-            <span>Rider</span>
-          </Button>
-        </div>
-
-        {/* Sign Out */}
-        <Button variant="outline" className="w-full">
-          Sign out
+        <Button
+          variant="outline"
+          onClick={logout}
+          className="w-full mt-8 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
         </Button>
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border">
+        <div className="flex justify-around py-4">
+          <button 
+            onClick={() => setCurrentView('home')}
+            className="flex flex-col items-center space-y-1"
+          >
+            <Car className="w-6 h-6 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Home</span>
+          </button>
+          <button 
+            onClick={() => setCurrentView('wallet')}
+            className="flex flex-col items-center space-y-1"
+          >
+            <Wallet className="w-6 h-6 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Wallet</span>
+          </button>
+          <button className="flex flex-col items-center space-y-1">
+            <User className="w-6 h-6 text-primary" />
+            <span className="text-xs text-primary">Profile</span>
+          </button>
+        </div>
       </div>
     </div>
   );
 
-  return (
-    <div className="relative">
-      {currentView === 'home' && <HomeScreen />}
-      {currentView === 'trip' && <TripScreen />}
-      {currentView === 'earnings' && <EarningsScreen />}
-      {currentView === 'profile' && <ProfileScreen />}
-    </div>
-  );
+  // Show navigation screen when driver is en route
+  if (showNavigation && currentTrip) {
+    return (
+      <DriverNavigation 
+        trip={currentTrip}
+        onBack={() => setShowNavigation(false)}
+        onCompleteTrip={completeTrip}
+      />
+    );
+  }
+
+  // Driver profile sub-pages
+  if (currentView === 'vehicle') {
+    return <VehicleInformation onBack={() => setCurrentView('profile')} />;
+  }
+
+  if (currentView === 'wallet') {
+    return <DriverWallet onBack={() => setCurrentView('profile')} />;
+  }
+
+  if (currentView === 'trips') {
+    return <DriverTrips onBack={() => setCurrentView('profile')} />;
+  }
+
+  if (currentView === 'account') {
+    return <DriverAccountSettings onBack={() => setCurrentView('profile')} />;
+  }
+
+  if (currentView === 'earnings') {
+    return <EarningsScreen />;
+  }
+
+  if (currentView === 'profile') {
+    return <ProfileScreen />;
+  }
+
+  if (currentView === 'trip') {
+    return <TripScreen />;
+  }
+
+  return <HomeScreen />;
 };
 
 export default DriverApp;
